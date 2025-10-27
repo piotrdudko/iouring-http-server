@@ -13,5 +13,8 @@ $(BIN_DIR)/program: $(SRC_DIR)/main.c | $(BIN_DIR)
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
+run: $(BIN_DIR)/program
+	./$(BIN_DIR)/program
+
 clean:
 	rm -rf $(BIN_DIR)

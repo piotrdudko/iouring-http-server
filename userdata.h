@@ -1,3 +1,5 @@
+#pragma once
+
 #include <liburing.h>
 #include <netinet/in.h>
 
@@ -14,6 +16,7 @@ struct userdata {
 enum opcode {
   OP_ACCEPT = 1,
   OP_RECVMSG = 2,
+  OP_WRITE = 3,
 };
 
 static inline void encode_userdata(struct io_uring_sqe *sqe,uint16_t fd, uint8_t op) {
@@ -22,6 +25,6 @@ static inline void encode_userdata(struct io_uring_sqe *sqe,uint16_t fd, uint8_t
   io_uring_sqe_set_data64(sqe, ud.val);
 }
 
-static inline struct userdata decode_userdata(struct io_uring_cqe *cqe) {
+static inline struct userdata userdata_decode(struct io_uring_cqe *cqe) {
   return (struct userdata){.val = cqe->user_data};
 }

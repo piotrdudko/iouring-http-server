@@ -1,16 +1,18 @@
-#include "errors.h"
+#include "logging.h"
 #include "userdata.h"
-#include <arpa/inet.h>
+
 #include <fcntl.h>
 #include <liburing.h>
 #include <liburing/io_uring.h>
 #include <netinet/in.h>
-#include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
 #define MAX_CONNECTIONS 5
-#define FMT_ADDRLEN 32
+
+#define BUFRINGS_CONN 0
+#define BUFRINGS_WRITE 0
+#define BUFRINGS 2
 
 struct buffer_ring_init_params {
   size_t entries;
@@ -28,22 +30,22 @@ struct buffer_ring buffer_ring_init(struct io_uring *ring,
                                     struct buffer_ring_init_params params) {
   struct io_uring_buf_ring *br;
   size_t i;
-  int err;
+  int res;
 
   uint8_t *_bufs = malloc(params.entries * params.entry_size);
   struct iovec *bufs = malloc(params.entries * sizeof(struct iovec));
 
   /* allocate mem for sharing buffer ring */
-  err = posix_memalign((void **)&br, 4096,
+  res = posix_memalign((void **)&br, 4096,
                        params.entries * sizeof(struct io_uring_buf_ring));
-  err_handler(-err);
+  ASSERT_POSITIVE(-res);
 
   /* assign and register buffer ring */
   struct io_uring_buf_reg reg = {.ring_addr = (unsigned long)br,
                                  .ring_entries = params.entries,
                                  .bgid = params.bgid};
-  err = io_uring_register_buf_ring(ring, &reg, 0);
-  err_handler(err);
+  res = io_uring_register_buf_ring(ring, &reg, 0);
+  ASSERT_POSITIVE(res);
 
   /* add initial buffers to the ring */
   io_uring_buf_ring_init(br);
@@ -66,52 +68,31 @@ struct buffer_ring buffer_ring_init(struct io_uring *ring,
   };
 }
 
-void format_inet_addr_from_sockfd(int sockfd, char *buf, size_t buf_sz) {
-  int err;
-  int ip_len;
-  struct sockaddr_in sender;
-  socklen_t sender_sz = sizeof(struct sockaddr_in);
-
-  err = getpeername(sockfd, (struct sockaddr *)&sender, &sender_sz);
-  err_handler(-err, "getpeername()");
-
-  memset(buf, 0, buf_sz);
-  inet_ntop(AF_INET, &sender.sin_addr, buf, buf_sz);
-
-  ip_len = strlen(buf);
-  snprintf(buf + ip_len, buf_sz - ip_len, ":%d", ntohs(sender.sin_port));
-}
-
-void tcp_server(struct io_uring *ring) {
-  int err;
+void run_event_loop(struct io_uring *ring,
+                    struct buffer_ring bufrings[BUFRINGS]) {
+  int res;
   struct io_uring_cqe *cqe;
   struct io_uring_sqe *sqe;
   struct msghdr msg = {};
 
-  struct buffer_ring_init_params params = {
-      .entries = 16, .entry_size = 1024, .bgid = 1};
-  struct buffer_ring br = buffer_ring_init(ring, params);
-
-  char fmt_addr[FMT_ADDRLEN];
-
   for (;;) {
-    err = io_uring_wait_cqe(ring, &cqe);
-    err_handler(err);
+    res = io_uring_wait_cqe(ring, &cqe);
+    ASSERT_POSITIVE(res);
 
-    struct userdata ud = decode_userdata(cqe);
+    struct userdata ud = userdata_decode(cqe);
     switch (ud.op) {
+    case OP_WRITE: {
+      break;
+    }
     case OP_ACCEPT: {
       int clientfd = cqe->res;
-      err_handler(clientfd);
+      ASSERT_POSITIVE(clientfd);
 
       sqe = io_uring_get_sqe(ring);
       io_uring_prep_recvmsg_multishot(sqe, clientfd, &msg, 0);
       sqe->flags |= IOSQE_BUFFER_SELECT;
-      sqe->buf_group = params.bgid;
+      sqe->buf_group = 0;
       encode_userdata(sqe, clientfd, OP_RECVMSG);
-
-      err = io_uring_submit(ring);
-      err_handler(err);
 
       format_inet_addr_from_sockfd(clientfd, fmt_addr, FMT_ADDRLEN);
       break;
@@ -119,65 +100,91 @@ void tcp_server(struct io_uring *ring) {
     case OP_RECVMSG: {
       int bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
       int msglen = cqe->res;
-      err_handler(msglen);
+      ASSERT_POSITIVE(msglen);
 
-      struct io_uring_recvmsg_out *out =
-          io_uring_recvmsg_validate(br.bufs[bid].iov_base, cqe->res, &msg);
-      null_handler(out, "recvmsg validation failed.");
+      struct io_uring_recvmsg_out *out = io_uring_recvmsg_validate(
+          bufrings[BUFRINGS_CONN].bufs[bid].iov_base, msglen, &msg);
+      ASSERT_NOT_NULL(out, "recvmsg validation failed.");
 
       char *buf = io_uring_recvmsg_payload(out, &msg);
-      int len = io_uring_recvmsg_payload_length(out, cqe->res, &msg);
+      int len = io_uring_recvmsg_payload_length(out, msglen, &msg);
 
-      printf("Packet from %s, len: %d, content: %.*s\n", fmt_addr, cqe->res,
-             len, buf);
+      info(ring, "[INFO] Packet from %s, bid: %d, len: %d, content: %.*s\n",
+           fmt_addr, bid, msglen, len, buf);
+
+      io_uring_buf_ring_add(
+          bufrings[BUFRINGS_CONN].br,
+          bufrings[BUFRINGS_CONN].bufs[bid].iov_base,
+          bufrings[BUFRINGS_CONN].bufs[bid].iov_len, bid,
+          io_uring_buf_ring_mask(bufrings[BUFRINGS_CONN].params.entries), bid);
+      io_uring_buf_ring_advance(bufrings[BUFRINGS_CONN].br, 1);
+
       break;
     }
     default: {
-      err_handler(-ENOSYS);
       break;
     }
     }
     io_uring_cqe_seen(ring, cqe);
+
+    res = io_uring_submit(ring);
+    ASSERT_POSITIVE(res);
   }
 }
 
 int main() {
-  int err;
-  int socketfd;
+  int res;
   struct io_uring_sqe *sqe;
   struct io_uring ring;
 
-  socketfd = socket(AF_INET, SOCK_STREAM, 0);
-  err_handler(socketfd);
+  int socketfd = socket(AF_INET, SOCK_STREAM, 0);
+  ASSERT_POSITIVE(socketfd);
 
   int optval = 1;
-  err = setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval,
+  res = setsockopt(socketfd, SOL_SOCKET, SO_REUSEADDR, (const void *)&optval,
                    sizeof(int));
-  err_handler(err);
+  ASSERT_POSITIVE(res);
 
   struct sockaddr_in serveraddr = {
       .sin_family = AF_INET,
       .sin_port = htons(3000),
       .sin_addr = {INADDR_ANY},
   };
-  err =
+  res =
       bind(socketfd, (const struct sockaddr *)&serveraddr, sizeof(serveraddr));
-  err_handler(err);
+  ASSERT_POSITIVE(res);
 
-  err = listen(socketfd, MAX_CONNECTIONS);
-  err_handler(err);
+  res = listen(socketfd, MAX_CONNECTIONS);
+  ASSERT_POSITIVE(res);
 
-  err = io_uring_queue_init(16, &ring, 0);
-  err_handler(err);
+  struct io_uring_params ring_params = {.sq_thread_idle = 5000,
+                                        .sq_thread_cpu = 0,
+                                        .flags = IORING_SETUP_SQPOLL |
+                                                 IORING_SETUP_SQ_AFF};
+
+  res = io_uring_queue_init_params(16, &ring, &ring_params);
+  ASSERT_POSITIVE(res);
 
   sqe = io_uring_get_sqe(&ring);
+  ASSERT_NOT_NULL(sqe);
   io_uring_prep_multishot_accept(sqe, socketfd, NULL, NULL, 0);
   encode_userdata(sqe, socketfd, OP_ACCEPT);
 
-  err = io_uring_submit(&ring);
-  err_handler(err);
+  info(&ring, "Server starting...");
 
-  tcp_server(&ring);
+  res = io_uring_submit(&ring);
+  ASSERT_POSITIVE(res);
+
+  struct buffer_ring buffer_rings[BUFRINGS] = {
+      buffer_ring_init(&ring,
+                       (struct buffer_ring_init_params){
+                           .entries = 16, .entry_size = 1024, .bgid = 0}),
+      buffer_ring_init(&ring,
+                       (struct buffer_ring_init_params){
+                           .entries = 16, .entry_size = 512, .bgid = 1}),
+  };
+
+  run_event_loop(&ring, buffer_rings);
 
   return 0;
 }
