@@ -90,8 +90,18 @@ int main() {
                                         .sq_thread_cpu = 0,
                                         .flags = IORING_SETUP_SQPOLL |
                                                  IORING_SETUP_SQ_AFF};
-
   ASSERT_POSITIVE(io_uring_queue_init_params(16, &ring, &ring_params));
+
+  struct regbuf_pool bufpool = regbuf_pool_init(&ring, LOGGING_BUFSIZE, 16);
+
+  struct buffer_ring buffer_rings[BUFRINGS] = {
+      buffer_ring_init(&ring,
+                       (struct buffer_ring_init_params){
+                           .entries = 16, .entry_size = 1024, .bgid = 0}),
+      buffer_ring_init(&ring,
+                       (struct buffer_ring_init_params){
+                           .entries = 16, .entry_size = 512, .bgid = 1}),
+  };
 
   ASSERT_NOT_NULL(sqe = io_uring_get_sqe(&ring));
   io_uring_prep_socket(sqe, AF_INET, SOCK_STREAM, 0, 0);
@@ -122,37 +132,15 @@ int main() {
 
   ASSERT_POSITIVE(listen(socketfd, MAX_CONNECTIONS));
 
-  uint8_t *bufs = malloc(REGISTERED_BUFFER_SIZE * REGISTERED_BUFFERS);
-  struct iovec *registered_buffers = malloc(REGISTERED_BUFFERS * sizeof(struct iovec));
-
-  for (int i = 0; i < REGISTERED_BUFFERS; i++) {
-      registered_buffers[i].iov_base = bufs + i * REGISTERED_BUFFER_SIZE;
-      registered_buffers[i].iov_len = REGISTERED_BUFFER_SIZE;
-  }
-
-  res = io_uring_register_buffers(&ring, registered_buffers, REGISTERED_BUFFERS);
-  ASSERT_POSITIVE(res);
-
   sqe = io_uring_get_sqe(&ring);
   ASSERT_NOT_NULL(sqe);
   io_uring_prep_multishot_accept(sqe, socketfd, NULL, NULL, 0);
   encode_userdata(sqe, socketfd, OP_ACCEPT);
 
-  struct regbuf_pool bufpool = regbuf_pool_init(&ring, 16, LOGGING_BUFSIZE);
-
   info(&ring, &bufpool, "Server starting...");
 
   res = io_uring_submit(&ring);
   ASSERT_POSITIVE(res);
-
-  struct buffer_ring buffer_rings[BUFRINGS] = {
-      buffer_ring_init(&ring,
-                       (struct buffer_ring_init_params){
-                           .entries = 16, .entry_size = 1024, .bgid = 0}),
-      buffer_ring_init(&ring,
-                       (struct buffer_ring_init_params){
-                           .entries = 16, .entry_size = 512, .bgid = 1}),
-  };
 
 
   run_event_loop(&ring, buffer_rings, &bufpool);

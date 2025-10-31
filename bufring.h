@@ -25,7 +25,7 @@ struct buffer_ring {
   struct buffer_ring_init_params params;
 };
 
-struct buffer_ring buffer_ring_init(struct io_uring *ring,
+static inline struct buffer_ring buffer_ring_init(struct io_uring *ring,
                                     struct buffer_ring_init_params params) {
   struct io_uring_buf_ring *br;
   size_t i;
@@ -80,7 +80,7 @@ struct regbuf_freelist_entry {
     struct regbuf_freelist_entry *next;
 };
 
-struct regbuf_pool regbuf_pool_init(struct io_uring *ring, size_t buf_size, size_t entries) {
+static inline struct regbuf_pool regbuf_pool_init(struct io_uring *ring, size_t buf_size, size_t entries) {
     struct regbuf_freelist_entry* freelist_head = NULL;
     int res;
 
@@ -88,13 +88,13 @@ struct regbuf_pool regbuf_pool_init(struct io_uring *ring, size_t buf_size, size
     struct iovec *iovecs = (struct iovec*) malloc(entries * sizeof(struct iovec));
     struct regbuf_freelist_entry *freebs = (struct regbuf_freelist_entry*) malloc(entries * sizeof(struct regbuf_freelist_entry));
 
-    for (size_t i = entries; i >= 0; i--) {
+    for (size_t i = 0; i < entries; i++) {
         iovecs[i].iov_base = buf + (i * buf_size);
         iovecs[i].iov_len = buf_size;
         freebs[i].bid = i;
-        freebs[i].iov = &iovecs[i];
+        freebs[i].iov = iovecs + i;
         freebs[i].next = freelist_head;
-        freelist_head = &freebs[i];
+        freelist_head = freebs + i;
     }
 
     res = io_uring_register_buffers(ring, iovecs, entries);
@@ -108,7 +108,7 @@ struct regbuf_pool regbuf_pool_init(struct io_uring *ring, size_t buf_size, size
     };
 }
 
-struct regbuf_freelist_entry *regbuf_pool_pop(struct regbuf_pool *self) {
+static inline struct regbuf_freelist_entry *regbuf_pool_pop(struct regbuf_pool *self) {
     struct regbuf_freelist_entry *freelist_head = self->freelist_head;
     if (!freelist_head) {
         return NULL;
@@ -117,7 +117,7 @@ struct regbuf_freelist_entry *regbuf_pool_pop(struct regbuf_pool *self) {
     return freelist_head;
 }
 
-void regbuf_pool_put(struct regbuf_pool *self, int bid) {
+static inline void regbuf_pool_put(struct regbuf_pool *self, int bid) {
     struct regbuf_freelist_entry *freebuf = self->freelist_mem + bid;
     freebuf->next = self->freelist_head;
     self->freelist_head = freebuf;
