@@ -1,6 +1,8 @@
 #pragma once
 
+#include "bufring.h"
 #include "userdata.h"
+
 #include <arpa/inet.h>
 #include <liburing.h>
 #include <signal.h>
@@ -18,7 +20,7 @@
       fprintf(stderr,                                                          \
               "\033[37m[\033[0m\033[31mERROR\033[0m\033[37m]\033[0m %s%s%s. "  \
               "At %s:%d\n",                                                    \
-              strerror(code), sizeof((char[]){__VA_ARGS__}) == 1 ? "" : ": ",  \
+              strerror(-code), sizeof((char[]){__VA_ARGS__}) == 1 ? "" : ": ",  \
               sizeof((char[]){__VA_ARGS__}) == 1 ? "" : (char[]){__VA_ARGS__}, \
               __FILE__, __LINE__);                                             \
       raise(SIGTRAP);                                                          \
@@ -59,7 +61,6 @@
 #define TRACE_LEVEL_BUFSIZE 8
 
 char fmt_addr[FMT_ADDRLEN];
-char log_buf[LOGGING_BUFSIZE];
 
 void format_inet_addr_from_sockfd(int sockfd, char *buf, size_t buf_sz) {
   int err;
@@ -81,7 +82,7 @@ void format_inet_addr_from_sockfd(int sockfd, char *buf, size_t buf_sz) {
 #define COLOR_GREEN   "\033[32m"
 #define COLOR_BRIGHT_GREEN  "\033[92m"
 
-void info(struct io_uring *ring, const char *fmt, ...) {
+void info(struct io_uring *ring, struct regbuf_pool *bufpool, const char *fmt, ...) {
   struct io_uring_sqe *sqe;
   struct timeval tv;
   struct tm *tm_info;
@@ -100,11 +101,16 @@ void info(struct io_uring *ring, const char *fmt, ...) {
   logsize = vsnprintf(scratch2, LOGGING_BUFSIZE, fmt, args);
   va_end(args);
 
+  struct regbuf_freelist_entry *regbuf = regbuf_pool_pop(bufpool);
+  ASSERT_NOT_NULL(regbuf);
+  char* log_buf = (char*)regbuf->iov->iov_base;
+  uint16_t bid = regbuf->bid;
+
   logsize =
       snprintf(log_buf, LOGGING_BUFSIZE, "%s %s[INFO]%s %s\n", scratch1, COLOR_GREEN, COLOR_RESET, scratch2);
 
   sqe = io_uring_get_sqe(ring);
   ASSERT_NOT_NULL(sqe);
-  io_uring_prep_write(sqe, STDERR_FILENO, log_buf, logsize, 0);
-  encode_userdata(sqe, STDERR_FILENO, OP_WRITE);
+  io_uring_prep_write_fixed(sqe, STDERR_FILENO, log_buf, logsize, 0, bid);
+  encode_userdata(sqe, bid, OP_WRITE_FIXED);
 }

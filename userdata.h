@@ -17,6 +17,7 @@ enum opcode {
   OP_ACCEPT = 1,
   OP_RECVMSG = 2,
   OP_WRITE = 3,
+  OP_WRITE_FIXED = 4,
 };
 
 static inline void encode_userdata(struct io_uring_sqe *sqe,uint16_t fd, uint8_t op) {

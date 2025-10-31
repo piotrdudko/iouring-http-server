@@ -7,7 +7,7 @@ BIN_DIR = bin
 
 all: $(BIN_DIR)/program
 
-$(BIN_DIR)/program: $(SRC_DIR)/main.c | $(BIN_DIR)
+$(BIN_DIR)/program: $(SRC_DIR)/main.c $(SRC_DIR)/userdata.h $(SRC_DIR)/logging.h | $(BIN_DIR)
 	$(CC) $(CFLAGS) $< -o $@
 
 $(BIN_DIR):
