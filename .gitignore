@@ -1,1 +1,13 @@
+# C build artifacts
 bin
+obj
+*.o
+*.a
+
+# Rust build artifacts
+target/
+Cargo.lock
+
+# Debug artifacts
+*.dSYM/
+core
