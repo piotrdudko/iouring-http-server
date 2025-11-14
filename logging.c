@@ -29,7 +29,38 @@ void format_inet_addr_from_sockfd(int sockfd, char *buf, size_t buf_sz) {
   snprintf(buf + ip_len, buf_sz - ip_len, ":%d", ntohs(sender.sin_port));
 }
 
-void info(struct io_uring *ring, struct regbuf_pool *bufpool, const char *fmt, ...) {
+const char *log_level_str(enum log_level level) {
+  switch (level) {
+  case LOG_LEVEL_DEBUG:
+    return "DEBUG";
+  case LOG_LEVEL_INFO:
+    return "INFO";
+  case LOG_LEVEL_WARN:
+    return "WARN";
+  case LOG_LEVEL_ERROR:
+    return "ERROR";
+  default:
+    return "UNKNOWN";
+  }
+}
+
+const char *log_level_color(enum log_level level) {
+  switch (level) {
+  case LOG_LEVEL_DEBUG:
+    return COLOR_BLUE;
+  case LOG_LEVEL_INFO:
+    return COLOR_BRIGHT_GREEN;
+  case LOG_LEVEL_WARN:
+    return COLOR_YELLOW;
+  case LOG_LEVEL_ERROR:
+    return COLOR_RED;
+  default:
+    return COLOR_RESET;
+  }
+}
+
+void log_event(enum log_level level, struct io_uring *ring,
+               struct regbuf_pool *bufpool, const char *fmt, ...) {
   struct io_uring_sqe *sqe;
   struct timeval tv;
   struct tm *tm_info;
@@ -50,11 +81,12 @@ void info(struct io_uring *ring, struct regbuf_pool *bufpool, const char *fmt, .
 
   struct regbuf_freelist_entry *regbuf = regbuf_pool_pop(bufpool);
   ASSERT_NOT_NULL(regbuf);
-  char* log_buf = (char*)regbuf->iov->iov_base;
+  char *log_buf = (char *)regbuf->iov->iov_base;
   uint16_t bid = regbuf->bid;
 
-  logsize =
-      snprintf(log_buf, LOGGING_BUFSIZE, "%s %s[INFO]%s %s\n", scratch1, COLOR_GREEN, COLOR_RESET, scratch2);
+  logsize = snprintf(log_buf, LOGGING_BUFSIZE, "%s [%d] %s[%s]%s %s\n",
+                     scratch1, bid, log_level_color(level),
+                     log_level_str(level), COLOR_RESET, scratch2);
 
   sqe = io_uring_get_sqe(ring);
   ASSERT_NOT_NULL(sqe);

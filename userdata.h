@@ -14,10 +14,12 @@ struct userdata {
 };
 
 enum opcode {
-  OP_ACCEPT = 1,
-  OP_RECVMSG = 2,
-  OP_WRITE = 3,
-  OP_WRITE_FIXED = 4,
+  OP_LISTEN = 1,
+  OP_ACCEPT = 2,
+  OP_RECVMSG = 3,
+  OP_WRITE = 4,
+  OP_WRITE_FIXED = 5,
+  OP_SENDMSG = 6,
 };
 
 static inline void encode_userdata(struct io_uring_sqe *sqe,uint16_t fd, uint8_t op) {

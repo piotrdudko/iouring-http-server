@@ -14,9 +14,9 @@
 #define REGISTERED_BUFFER_SIZE 1024
 
 struct buffer_ring_init_params {
-  size_t entries;
-  size_t entry_size;
-  int bgid;
+  uint16_t entries;
+  uint16_t entry_size;
+  uint16_t bgid;
 };
 
 struct buffer_ring {

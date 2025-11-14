@@ -60,10 +60,34 @@ struct io_uring;
 #define TRACE_LEVEL_BUFSIZE 8
 
 #define COLOR_RESET   "\033[0m"
-#define COLOR_GREEN   "\033[32m"
+#define COLOR_YELLOW  "\033[33m"
+#define COLOR_BLUE    "\033[34m"
+#define COLOR_MAGENTA "\033[35m"
+#define COLOR_CYAN    "\033[36m"
+#define COLOR_RED     "\033[31m"
 #define COLOR_BRIGHT_GREEN  "\033[92m"
 
 extern char fmt_addr[FMT_ADDRLEN];
 
 void format_inet_addr_from_sockfd(int sockfd, char *buf, size_t buf_sz);
-void info(struct io_uring *ring, struct regbuf_pool *bufpool, const char *fmt, ...);
+
+enum log_level {
+  LOG_LEVEL_DEBUG,
+  LOG_LEVEL_INFO,
+  LOG_LEVEL_WARN,
+  LOG_LEVEL_ERROR
+};
+
+void log_event(enum log_level level, struct io_uring *ring, struct regbuf_pool *bufpool, const char *fmt, ...);
+
+#define debug_log(ring, bufpool, fmt, ...) \
+    log_event(LOG_LEVEL_DEBUG, ring, bufpool, fmt, ##__VA_ARGS__)
+
+#define info_log(ring, bufpool, fmt, ...) \
+    log_event(LOG_LEVEL_INFO, ring, bufpool, fmt, ##__VA_ARGS__)
+
+#define warn_log(ring, bufpool, fmt, ...) \
+    log_event(LOG_LEVEL_WARN, ring, bufpool, fmt, ##__VA_ARGS__)
+
+#define error_log(ring, bufpool, fmt, ...) \
+    log_event(LOG_LEVEL_ERROR, ring, bufpool, fmt, ##__VA_ARGS__)
