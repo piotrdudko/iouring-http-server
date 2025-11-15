@@ -1,5 +1,5 @@
+#include "appctx.h"
 #include "logging.h"
-#include "bufring.h"
 
 #include <arpa/inet.h>
 #include <liburing.h>
@@ -59,8 +59,7 @@ const char *log_level_color(enum log_level level) {
   }
 }
 
-void log_event(enum log_level level, struct io_uring *ring,
-               struct regbuf_pool *bufpool, const char *fmt, ...) {
+void log_event(enum log_level level, struct appctx_t *appctx, const char *fmt, ...) {
   struct io_uring_sqe *sqe;
   struct timeval tv;
   struct tm *tm_info;
@@ -79,7 +78,7 @@ void log_event(enum log_level level, struct io_uring *ring,
   logsize = vsnprintf(scratch2, LOGGING_BUFSIZE, fmt, args);
   va_end(args);
 
-  struct regbuf_freelist_entry *regbuf = regbuf_pool_pop(bufpool);
+  struct bufpool_freebuf_t *regbuf = bufpool_pop(&appctx->bufpool);
   ASSERT_NOT_NULL(regbuf);
   char *log_buf = (char *)regbuf->iov->iov_base;
   uint16_t bid = regbuf->bid;
@@ -88,7 +87,7 @@ void log_event(enum log_level level, struct io_uring *ring,
                      scratch1, bid, log_level_color(level),
                      log_level_str(level), COLOR_RESET, scratch2);
 
-  sqe = io_uring_get_sqe(ring);
+  sqe = io_uring_get_sqe(&appctx->uring);
   ASSERT_NOT_NULL(sqe);
   io_uring_prep_write_fixed(sqe, STDERR_FILENO, log_buf, logsize, 0, bid);
   encode_userdata(sqe, bid, OP_WRITE_FIXED);

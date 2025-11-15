@@ -22,7 +22,7 @@ fn main() {
     // Tell cargo to link the C library
     println!("cargo:rustc-link-search=native={}", clib_dir.display());
     println!("cargo:rustc-link-lib=static=iouring_helpers");
-    println!("cargo:rustc-link-lib=uring");
+    println!("cargo:rustc-link-lib=uring-ffi");
 
     // Generate bindings using bindgen
     let bindings = bindgen::Builder::default()
@@ -33,7 +33,7 @@ fn main() {
         .expect("Unable to generate bindings");
 
     // Write the bindings to $OUT_DIR/bindings.rs
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
+    let out_path = PathBuf::from("src");
     bindings
         .write_to_file(out_path.join("bindings.rs"))
         .expect("Couldn't write bindings!");

@@ -1,4 +1,4 @@
-#include "../clib/bufring.h"
+#include "../clib/appctx.h"
 #include "../clib/logging.h"
 #include "../clib/userdata.h"
 
@@ -12,16 +12,14 @@
 
 char MESSAGE[] = "Hello, World!\n";
 
-void run_event_loop(struct io_uring *ring,
-                    struct buffer_ring bufrings[BUFRINGS],
-                    struct regbuf_pool *bufpool) {
+void run_event_loop(struct appctx_t *appctx) {
   int res;
   struct io_uring_cqe *cqe;
   struct io_uring_sqe *sqe;
   struct msghdr msg = {};
 
   for (;;) {
-    res = io_uring_wait_cqe(ring, &cqe);
+    res = io_uring_wait_cqe(&appctx->uring, &cqe);
     ASSERT_POSITIVE(res);
 
     struct userdata ud = userdata_decode(cqe);
@@ -34,7 +32,7 @@ void run_event_loop(struct io_uring *ring,
     }
     case OP_WRITE_FIXED: {
       uint16_t bid = ud.fd;
-      regbuf_pool_put(bufpool, bid);
+      bufpool_put(&appctx->bufpool, bid);
 
       break;
     }
@@ -42,7 +40,7 @@ void run_event_loop(struct io_uring *ring,
       int clientfd = cqe->res;
       ASSERT_POSITIVE(clientfd);
 
-      sqe = io_uring_get_sqe(ring);
+      sqe = io_uring_get_sqe(&appctx->uring);
       io_uring_prep_recvmsg_multishot(sqe, clientfd, &msg, 0);
       sqe->flags |= IOSQE_BUFFER_SELECT;
       sqe->buf_group = 0;
@@ -57,24 +55,25 @@ void run_event_loop(struct io_uring *ring,
       ASSERT_POSITIVE(msglen);
 
       struct io_uring_recvmsg_out *out = io_uring_recvmsg_validate(
-          bufrings[BUFRINGS_CONN].bufs[bid].iov_base, msglen, &msg);
+          appctx->bufrings[BUFRINGS_CONN].bufs[bid].iov_base, msglen, &msg);
       ASSERT_NOT_NULL(out, "recvmsg validation failed.");
 
       char *buf = io_uring_recvmsg_payload(out, &msg);
       int len = io_uring_recvmsg_payload_length(out, msglen, &msg);
 
-      debug_log(ring, bufpool,
-                "Packet from %s, bid: %d, len: %d, content: %.*s", fmt_addr,
-                bid, msglen, len, buf);
+      debug_log(appctx, "Packet from %s, bid: %d, len: %d, content: %.*s",
+                fmt_addr, bid, msglen, len, buf);
 
-      io_uring_buf_ring_add(
-          bufrings[BUFRINGS_CONN].br,
-          bufrings[BUFRINGS_CONN].bufs[bid].iov_base,
-          bufrings[BUFRINGS_CONN].bufs[bid].iov_len, bid,
-          io_uring_buf_ring_mask(bufrings[BUFRINGS_CONN].params.entries), bid);
-      io_uring_buf_ring_advance(bufrings[BUFRINGS_CONN].br, 1);
+      io_uring_buf_ring_add(appctx->bufrings[BUFRINGS_CONN].br,
+                            appctx->bufrings[BUFRINGS_CONN].bufs[bid].iov_base,
+                            appctx->bufrings[BUFRINGS_CONN].bufs[bid].iov_len,
+                            bid,
+                            io_uring_buf_ring_mask(
+                                appctx->bufrings[BUFRINGS_CONN].params.entries),
+                            bid);
+      io_uring_buf_ring_advance(appctx->bufrings[BUFRINGS_CONN].br, 1);
 
-      sqe = io_uring_get_sqe(ring);
+      sqe = io_uring_get_sqe(&appctx->uring);
       io_uring_prep_send_zc(sqe, ud.fd, MESSAGE, strlen(MESSAGE), 0, 0);
       encode_userdata(sqe, ud.fd, OP_SENDMSG);
 
@@ -84,9 +83,9 @@ void run_event_loop(struct io_uring *ring,
       break;
     }
     }
-    io_uring_cqe_seen(ring, cqe);
+    io_uring_cqe_seen(&appctx->uring, cqe);
 
-    res = io_uring_submit(ring);
+    res = io_uring_submit(&appctx->uring);
     ASSERT_POSITIVE(res);
   }
 }
@@ -94,24 +93,18 @@ void run_event_loop(struct io_uring *ring,
 int main() {
   int res;
   struct io_uring_sqe *sqe;
-  struct io_uring ring;
 
-  struct io_uring_params ring_params = {.sq_thread_idle = 5000,
-                                        .sq_thread_cpu = 0,
-                                        .flags = IORING_SETUP_SQPOLL |
-                                                 IORING_SETUP_SQ_AFF};
-  ASSERT_POSITIVE(io_uring_queue_init_params(16, &ring, &ring_params));
+  struct io_uring_params uring_params = {.sq_thread_idle = 5000,
+                                         .sq_thread_cpu = 0,
+                                         .flags = IORING_SETUP_SQPOLL |
+                                                  IORING_SETUP_SQ_AFF};
 
-  struct regbuf_pool bufpool = regbuf_pool_init(&ring, LOGGING_BUFSIZE, 16);
-
-  struct buffer_ring buffer_rings[BUFRINGS] = {
-      buffer_ring_init(&ring,
-                       (struct buffer_ring_init_params){
-                           .entries = 16, .entry_size = 1024, .bgid = 0}),
-      buffer_ring_init(&ring,
-                       (struct buffer_ring_init_params){
-                           .entries = 16, .entry_size = 512, .bgid = 1}),
+  struct bufring_init_params_t bufrings_params[BUFRINGS] = {
+      {.entries = 16, .entry_size = 1024, .bgid = 0},
+      {.entries = 16, .entry_size = 512, .bgid = 1},
   };
+
+  struct appctx_t appctx = appctx_init(uring_params, bufrings_params, 16);
 
   int socketfd = socket(AF_INET, SOCK_STREAM, 0);
   ASSERT_POSITIVE(socketfd);
@@ -129,20 +122,20 @@ int main() {
       bind(socketfd, (struct sockaddr *)&serveraddr, sizeof(serveraddr)));
   ASSERT_POSITIVE(listen(socketfd, MAX_CONNECTIONS));
 
-  sqe = io_uring_get_sqe(&ring);
+  sqe = io_uring_get_sqe(&appctx.uring);
   ASSERT_NOT_NULL(sqe);
   io_uring_prep_multishot_accept(sqe, socketfd, NULL, NULL, 0);
   encode_userdata(sqe, socketfd, OP_ACCEPT);
 
-  debug_log(&ring, &bufpool, "Server starting 1...");
-  info_log(&ring, &bufpool, "Server starting 2...");
-  warn_log(&ring, &bufpool, "Server starting 3...");
-  error_log(&ring, &bufpool, "Server starting 4...");
+  debug_log(&appctx, "Server starting 1...");
+  info_log(&appctx, "Server starting 2...");
+  warn_log(&appctx, "Server starting 3...");
+  error_log(&appctx, "Server starting 4...");
 
-  res = io_uring_submit(&ring);
+  res = io_uring_submit(&appctx.uring);
   ASSERT_POSITIVE(res);
 
-  run_event_loop(&ring, buffer_rings, &bufpool);
+  run_event_loop(&appctx);
 
   return 0;
 }

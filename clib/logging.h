@@ -3,7 +3,7 @@
 #include "userdata.h"
 
 // Forward declarations to avoid circular dependency
-struct regbuf_pool;
+struct bufpool_t;
 struct io_uring;
 
 #include <liburing.h>
@@ -78,16 +78,16 @@ enum log_level {
   LOG_LEVEL_ERROR
 };
 
-void log_event(enum log_level level, struct io_uring *ring, struct regbuf_pool *bufpool, const char *fmt, ...);
+void log_event(enum log_level level, struct appctx_t *appctx, const char *fmt, ...);
 
-#define debug_log(ring, bufpool, fmt, ...) \
-    log_event(LOG_LEVEL_DEBUG, ring, bufpool, fmt, ##__VA_ARGS__)
+#define debug_log(appctx, fmt, ...) \
+    log_event(LOG_LEVEL_DEBUG, appctx, fmt, ##__VA_ARGS__)
 
-#define info_log(ring, bufpool, fmt, ...) \
-    log_event(LOG_LEVEL_INFO, ring, bufpool, fmt, ##__VA_ARGS__)
+    #define info_log(appctx, fmt, ...) \
+    log_event(LOG_LEVEL_INFO, appctx, fmt, ##__VA_ARGS__)
 
-#define warn_log(ring, bufpool, fmt, ...) \
-    log_event(LOG_LEVEL_WARN, ring, bufpool, fmt, ##__VA_ARGS__)
+    #define warn_log(appctx, fmt, ...) \
+    log_event(LOG_LEVEL_WARN, appctx, fmt, ##__VA_ARGS__)
 
-#define error_log(ring, bufpool, fmt, ...) \
-    log_event(LOG_LEVEL_ERROR, ring, bufpool, fmt, ##__VA_ARGS__)
+    #define error_log(appctx, fmt, ...) \
+    log_event(LOG_LEVEL_ERROR, appctx, fmt, ##__VA_ARGS__)

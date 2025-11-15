@@ -7,7 +7,7 @@ LIB_DIR = .
 OBJ_DIR = obj
 TARGET = libiouring_helpers.a
 
-SOURCES = logging.c bufring.c userdata.c
+SOURCES = appctx.c logging.c userdata.c
 OBJECTS = $(SOURCES:%.c=$(OBJ_DIR)/%.o)
 
 .PHONY: all clean
