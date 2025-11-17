@@ -196,6 +196,15 @@ const _: () = {
     ["Offset of field: iovec::iov_base"][::std::mem::offset_of!(iovec, iov_base) - 0usize];
     ["Offset of field: iovec::iov_len"][::std::mem::offset_of!(iovec, iov_len) - 8usize];
 };
+impl Default for iovec {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub type __uint32_t = ::std::os::raw::c_uint;
 pub type __uid_t = ::std::os::raw::c_uint;
 pub type __mode_t = ::std::os::raw::c_uint;
@@ -208,7 +217,7 @@ pub type mode_t = __mode_t;
 pub type off_t = __off_t;
 pub type id_t = __id_t;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct __sigset_t {
     pub __val: [::std::os::raw::c_ulong; 16usize],
 }
@@ -222,7 +231,7 @@ pub type sigset_t = __sigset_t;
 pub type socklen_t = __socklen_t;
 pub type sa_family_t = ::std::os::raw::c_ushort;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct sockaddr {
     pub sa_family: sa_family_t,
     pub sa_data: [::std::os::raw::c_char; 14usize],
@@ -258,8 +267,17 @@ const _: () = {
         [::std::mem::offset_of!(msghdr, msg_controllen) - 40usize];
     ["Offset of field: msghdr::msg_flags"][::std::mem::offset_of!(msghdr, msg_flags) - 48usize];
 };
+impl Default for msghdr {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct cmsghdr {
     pub cmsg_len: usize,
     pub cmsg_level: ::std::os::raw::c_int,
@@ -290,6 +308,15 @@ const _: () = {
     ["Offset of field: sigval::sival_int"][::std::mem::offset_of!(sigval, sival_int) - 0usize];
     ["Offset of field: sigval::sival_ptr"][::std::mem::offset_of!(sigval, sival_ptr) - 0usize];
 };
+impl Default for sigval {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub type __sigval_t = sigval;
 #[repr(C)]
 #[derive(Copy, Clone)]
@@ -313,7 +340,7 @@ pub union siginfo_t__bindgen_ty_1 {
     pub _sigsys: siginfo_t__bindgen_ty_1__bindgen_ty_7,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct siginfo_t__bindgen_ty_1__bindgen_ty_1 {
     pub si_pid: __pid_t,
     pub si_uid: __uid_t,
@@ -349,6 +376,15 @@ const _: () = {
     ["Offset of field: siginfo_t__bindgen_ty_1__bindgen_ty_2::si_sigval"]
         [::std::mem::offset_of!(siginfo_t__bindgen_ty_1__bindgen_ty_2, si_sigval) - 8usize];
 };
+impl Default for siginfo_t__bindgen_ty_1__bindgen_ty_2 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct siginfo_t__bindgen_ty_1__bindgen_ty_3 {
@@ -369,8 +405,17 @@ const _: () = {
     ["Offset of field: siginfo_t__bindgen_ty_1__bindgen_ty_3::si_sigval"]
         [::std::mem::offset_of!(siginfo_t__bindgen_ty_1__bindgen_ty_3, si_sigval) - 8usize];
 };
+impl Default for siginfo_t__bindgen_ty_1__bindgen_ty_3 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct siginfo_t__bindgen_ty_1__bindgen_ty_4 {
     pub si_pid: __pid_t,
     pub si_uid: __uid_t,
@@ -425,6 +470,15 @@ const _: () = {
     ["Offset of field: siginfo_t__bindgen_ty_1__bindgen_ty_5__bindgen_ty_1__bindgen_ty_1::_lower"] [:: std :: mem :: offset_of ! (siginfo_t__bindgen_ty_1__bindgen_ty_5__bindgen_ty_1__bindgen_ty_1 , _lower) - 0usize] ;
     ["Offset of field: siginfo_t__bindgen_ty_1__bindgen_ty_5__bindgen_ty_1__bindgen_ty_1::_upper"] [:: std :: mem :: offset_of ! (siginfo_t__bindgen_ty_1__bindgen_ty_5__bindgen_ty_1__bindgen_ty_1 , _upper) - 8usize] ;
 };
+impl Default for siginfo_t__bindgen_ty_1__bindgen_ty_5__bindgen_ty_1__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of siginfo_t__bindgen_ty_1__bindgen_ty_5__bindgen_ty_1"]
@@ -440,6 +494,15 @@ const _: () = {
         _pkey
     ) - 0usize];
 };
+impl Default for siginfo_t__bindgen_ty_1__bindgen_ty_5__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of siginfo_t__bindgen_ty_1__bindgen_ty_5"]
@@ -453,8 +516,17 @@ const _: () = {
     ["Offset of field: siginfo_t__bindgen_ty_1__bindgen_ty_5::_bounds"]
         [::std::mem::offset_of!(siginfo_t__bindgen_ty_1__bindgen_ty_5, _bounds) - 16usize];
 };
+impl Default for siginfo_t__bindgen_ty_1__bindgen_ty_5 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct siginfo_t__bindgen_ty_1__bindgen_ty_6 {
     pub si_band: ::std::os::raw::c_long,
     pub si_fd: ::std::os::raw::c_int,
@@ -490,6 +562,15 @@ const _: () = {
     ["Offset of field: siginfo_t__bindgen_ty_1__bindgen_ty_7::_arch"]
         [::std::mem::offset_of!(siginfo_t__bindgen_ty_1__bindgen_ty_7, _arch) - 12usize];
 };
+impl Default for siginfo_t__bindgen_ty_1__bindgen_ty_7 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of siginfo_t__bindgen_ty_1"]
@@ -513,6 +594,15 @@ const _: () = {
     ["Offset of field: siginfo_t__bindgen_ty_1::_sigsys"]
         [::std::mem::offset_of!(siginfo_t__bindgen_ty_1, _sigsys) - 0usize];
 };
+impl Default for siginfo_t__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of siginfo_t"][::std::mem::size_of::<siginfo_t>() - 128usize];
@@ -524,6 +614,15 @@ const _: () = {
     ["Offset of field: siginfo_t::_sifields"]
         [::std::mem::offset_of!(siginfo_t, _sifields) - 16usize];
 };
+impl Default for siginfo_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub type __u8 = ::std::os::raw::c_uchar;
 pub type __u16 = ::std::os::raw::c_ushort;
 pub type __s32 = ::std::os::raw::c_int;
@@ -535,7 +634,7 @@ pub const idtype_t_P_PGID: idtype_t = 2;
 pub const idtype_t_P_PIDFD: idtype_t = 3;
 pub type idtype_t = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct __kernel_timespec {
     pub tv_sec: __kernel_time64_t,
     pub tv_nsec: ::std::os::raw::c_longlong,
@@ -550,7 +649,7 @@ const _: () = {
         [::std::mem::offset_of!(__kernel_timespec, tv_nsec) - 8usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct open_how {
     pub flags: __u64,
     pub mode: __u64,
@@ -589,7 +688,7 @@ pub union io_uring_sqe__bindgen_ty_1 {
     pub __bindgen_anon_1: io_uring_sqe__bindgen_ty_1__bindgen_ty_1,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_sqe__bindgen_ty_1__bindgen_ty_1 {
     pub cmd_op: __u32,
     pub __pad1: __u32,
@@ -616,6 +715,15 @@ const _: () = {
     ["Offset of field: io_uring_sqe__bindgen_ty_1::addr2"]
         [::std::mem::offset_of!(io_uring_sqe__bindgen_ty_1, addr2) - 0usize];
 };
+impl Default for io_uring_sqe__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union io_uring_sqe__bindgen_ty_2 {
@@ -624,7 +732,7 @@ pub union io_uring_sqe__bindgen_ty_2 {
     pub __bindgen_anon_1: io_uring_sqe__bindgen_ty_2__bindgen_ty_1,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_sqe__bindgen_ty_2__bindgen_ty_1 {
     pub level: __u32,
     pub optname: __u32,
@@ -651,6 +759,15 @@ const _: () = {
     ["Offset of field: io_uring_sqe__bindgen_ty_2::splice_off_in"]
         [::std::mem::offset_of!(io_uring_sqe__bindgen_ty_2, splice_off_in) - 0usize];
 };
+impl Default for io_uring_sqe__bindgen_ty_2 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union io_uring_sqe__bindgen_ty_3 {
@@ -731,6 +848,15 @@ const _: () = {
     ["Offset of field: io_uring_sqe__bindgen_ty_3::nop_flags"]
         [::std::mem::offset_of!(io_uring_sqe__bindgen_ty_3, nop_flags) - 0usize];
 };
+impl Default for io_uring_sqe__bindgen_ty_3 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C, packed)]
 #[derive(Copy, Clone)]
 pub union io_uring_sqe__bindgen_ty_4 {
@@ -748,6 +874,15 @@ const _: () = {
     ["Offset of field: io_uring_sqe__bindgen_ty_4::buf_group"]
         [::std::mem::offset_of!(io_uring_sqe__bindgen_ty_4, buf_group) - 0usize];
 };
+impl Default for io_uring_sqe__bindgen_ty_4 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub union io_uring_sqe__bindgen_ty_5 {
@@ -757,7 +892,7 @@ pub union io_uring_sqe__bindgen_ty_5 {
     pub __bindgen_anon_1: io_uring_sqe__bindgen_ty_5__bindgen_ty_1,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_sqe__bindgen_ty_5__bindgen_ty_1 {
     pub addr_len: __u16,
     pub __pad3: [__u16; 1usize],
@@ -786,6 +921,15 @@ const _: () = {
     ["Offset of field: io_uring_sqe__bindgen_ty_5::optlen"]
         [::std::mem::offset_of!(io_uring_sqe__bindgen_ty_5, optlen) - 0usize];
 };
+impl Default for io_uring_sqe__bindgen_ty_5 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 pub struct io_uring_sqe__bindgen_ty_6 {
     pub __bindgen_anon_1: __BindgenUnionField<io_uring_sqe__bindgen_ty_6__bindgen_ty_1>,
@@ -794,7 +938,7 @@ pub struct io_uring_sqe__bindgen_ty_6 {
     pub bindgen_union_field: [u64; 2usize],
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_sqe__bindgen_ty_6__bindgen_ty_1 {
     pub addr3: __u64,
     pub __pad2: [__u64; 1usize],
@@ -821,6 +965,15 @@ const _: () = {
     ["Offset of field: io_uring_sqe__bindgen_ty_6::cmd"]
         [::std::mem::offset_of!(io_uring_sqe__bindgen_ty_6, cmd) - 0usize];
 };
+impl Default for io_uring_sqe__bindgen_ty_6 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of io_uring_sqe"][::std::mem::size_of::<io_uring_sqe>() - 64usize];
@@ -837,6 +990,15 @@ const _: () = {
     ["Offset of field: io_uring_sqe::personality"]
         [::std::mem::offset_of!(io_uring_sqe, personality) - 42usize];
 };
+impl Default for io_uring_sqe {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub const io_uring_sqe_flags_bit_IOSQE_FIXED_FILE_BIT: io_uring_sqe_flags_bit = 0;
 pub const io_uring_sqe_flags_bit_IOSQE_IO_DRAIN_BIT: io_uring_sqe_flags_bit = 1;
 pub const io_uring_sqe_flags_bit_IOSQE_IO_LINK_BIT: io_uring_sqe_flags_bit = 2;
@@ -909,7 +1071,7 @@ pub const io_uring_msg_ring_flags_IORING_MSG_DATA: io_uring_msg_ring_flags = 0;
 pub const io_uring_msg_ring_flags_IORING_MSG_SEND_FD: io_uring_msg_ring_flags = 1;
 pub type io_uring_msg_ring_flags = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct io_uring_cqe {
     pub user_data: __u64,
     pub res: __s32,
@@ -928,7 +1090,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_cqe, big_cqe) - 16usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_sqring_offsets {
     pub head: __u32,
     pub tail: __u32,
@@ -964,7 +1126,7 @@ const _: () = {
         [::std::mem::offset_of!(io_sqring_offsets, user_addr) - 32usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_cqring_offsets {
     pub head: __u32,
     pub tail: __u32,
@@ -1000,7 +1162,7 @@ const _: () = {
         [::std::mem::offset_of!(io_cqring_offsets, user_addr) - 32usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_params {
     pub sq_entries: __u32,
     pub cq_entries: __u32,
@@ -1076,7 +1238,7 @@ pub const io_uring_register_op_IORING_REGISTER_USE_REGISTERED_RING: io_uring_reg
     2147483648;
 pub type io_uring_register_op = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_files_update {
     pub offset: __u32,
     pub resv: __u32,
@@ -1097,7 +1259,7 @@ const _: () = {
 pub const IORING_MEM_REGION_TYPE_USER: _bindgen_ty_13 = 1;
 pub type _bindgen_ty_13 = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_region_desc {
     pub user_addr: __u64,
     pub size: __u64,
@@ -1126,7 +1288,7 @@ const _: () = {
 pub const IORING_MEM_REGION_REG_WAIT_ARG: _bindgen_ty_14 = 1;
 pub type _bindgen_ty_14 = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_mem_region_reg {
     pub region_uptr: __u64,
     pub flags: __u64,
@@ -1145,7 +1307,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_mem_region_reg, __resv) - 16usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_rsrc_register {
     pub nr: __u32,
     pub flags: __u32,
@@ -1170,7 +1332,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_rsrc_register, tags) - 24usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_rsrc_update {
     pub offset: __u32,
     pub resv: __u32,
@@ -1188,7 +1350,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_rsrc_update, data) - 8usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_rsrc_update2 {
     pub offset: __u32,
     pub resv: __u32,
@@ -1216,7 +1378,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_rsrc_update2, resv2) - 28usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_probe_op {
     pub op: __u8,
     pub resv: __u8,
@@ -1237,7 +1399,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_probe_op, resv2) - 4usize];
 };
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct io_uring_probe {
     pub last_op: __u8,
     pub ops_len: __u8,
@@ -1287,6 +1449,15 @@ const _: () = {
     ["Offset of field: io_uring_restriction__bindgen_ty_1::sqe_flags"]
         [::std::mem::offset_of!(io_uring_restriction__bindgen_ty_1, sqe_flags) - 0usize];
 };
+impl Default for io_uring_restriction__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of io_uring_restriction"][::std::mem::size_of::<io_uring_restriction>() - 16usize];
@@ -1298,8 +1469,17 @@ const _: () = {
     ["Offset of field: io_uring_restriction::resv2"]
         [::std::mem::offset_of!(io_uring_restriction, resv2) - 4usize];
 };
+impl Default for io_uring_restriction {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_clock_register {
     pub clockid: __u32,
     pub __resv: [__u32; 3usize],
@@ -1318,7 +1498,7 @@ pub const IORING_REGISTER_SRC_REGISTERED: _bindgen_ty_15 = 1;
 pub const IORING_REGISTER_DST_REPLACE: _bindgen_ty_15 = 2;
 pub type _bindgen_ty_15 = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_clone_buffers {
     pub src_fd: __u32,
     pub flags: __u32,
@@ -1346,7 +1526,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_clone_buffers, pad) - 20usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_buf {
     pub addr: __u64,
     pub len: __u32,
@@ -1373,7 +1553,7 @@ pub struct io_uring_buf_ring__bindgen_ty_1 {
     pub bindgen_union_field: [u64; 2usize],
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_buf_ring__bindgen_ty_1__bindgen_ty_1 {
     pub resv1: __u64,
     pub resv2: __u32,
@@ -1404,18 +1584,36 @@ const _: () = {
     ["Offset of field: io_uring_buf_ring__bindgen_ty_1::bufs"]
         [::std::mem::offset_of!(io_uring_buf_ring__bindgen_ty_1, bufs) - 0usize];
 };
+impl Default for io_uring_buf_ring__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of io_uring_buf_ring"][::std::mem::size_of::<io_uring_buf_ring>() - 16usize];
     ["Alignment of io_uring_buf_ring"][::std::mem::align_of::<io_uring_buf_ring>() - 8usize];
 };
+impl Default for io_uring_buf_ring {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub const io_uring_register_pbuf_ring_flags_IOU_PBUF_RING_MMAP: io_uring_register_pbuf_ring_flags =
     1;
 pub const io_uring_register_pbuf_ring_flags_IOU_PBUF_RING_INC: io_uring_register_pbuf_ring_flags =
     2;
 pub type io_uring_register_pbuf_ring_flags = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_buf_reg {
     pub ring_addr: __u64,
     pub ring_entries: __u32,
@@ -1439,7 +1637,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_buf_reg, resv) - 16usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_buf_status {
     pub buf_group: __u32,
     pub head: __u32,
@@ -1457,7 +1655,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_buf_status, resv) - 8usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_napi {
     pub busy_poll_to: __u32,
     pub prefer_busy_poll: __u8,
@@ -1489,7 +1687,7 @@ pub type io_uring_register_restriction_op = ::std::os::raw::c_uint;
 pub const IORING_REG_WAIT_TS: _bindgen_ty_16 = 1;
 pub type _bindgen_ty_16 = ::std::os::raw::c_uint;
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_cqwait_reg_arg {
     pub flags: __u32,
     pub struct_size: __u32,
@@ -1517,7 +1715,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_cqwait_reg_arg, pad2) - 24usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_reg_wait {
     pub ts: __kernel_timespec,
     pub min_wait_usec: __u32,
@@ -1547,7 +1745,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_reg_wait, pad2) - 48usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_getevents_arg {
     pub sigmask: __u64,
     pub sigmask_sz: __u32,
@@ -1569,7 +1767,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_getevents_arg, ts) - 16usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_sync_cancel_reg {
     pub addr: __u64,
     pub fd: __s32,
@@ -1601,7 +1799,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_sync_cancel_reg, pad2) - 40usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_file_index_range {
     pub off: __u32,
     pub len: __u32,
@@ -1621,7 +1819,7 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_file_index_range, resv) - 8usize];
 };
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct io_uring_recvmsg_out {
     pub namelen: __u32,
     pub controllen: __u32,
@@ -1694,6 +1892,15 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_sq, ring_entries) - 92usize];
     ["Offset of field: io_uring_sq::pad"][::std::mem::offset_of!(io_uring_sq, pad) - 96usize];
 };
+impl Default for io_uring_sq {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct io_uring_cq {
@@ -1734,6 +1941,15 @@ const _: () = {
         [::std::mem::offset_of!(io_uring_cq, ring_entries) - 76usize];
     ["Offset of field: io_uring_cq::pad"][::std::mem::offset_of!(io_uring_cq, pad) - 80usize];
 };
+impl Default for io_uring_cq {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct io_uring {
@@ -1763,6 +1979,15 @@ const _: () = {
     ["Offset of field: io_uring::pad"][::std::mem::offset_of!(io_uring, pad) - 209usize];
     ["Offset of field: io_uring::pad2"][::std::mem::offset_of!(io_uring, pad2) - 212usize];
 };
+impl Default for io_uring {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 extern "C" {
     pub fn io_uring_get_probe_ring(ring: *mut io_uring) -> *mut io_uring_probe;
 }
@@ -3112,7 +3337,7 @@ extern "C" {
     ) -> bool;
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct bufring_init_params_t {
     pub entries: u16,
     pub entry_size: u16,
@@ -3145,6 +3370,15 @@ const _: () = {
     ["Offset of field: bufring_t::bufs"][::std::mem::offset_of!(bufring_t, bufs) - 8usize];
     ["Offset of field: bufring_t::params"][::std::mem::offset_of!(bufring_t, params) - 16usize];
 };
+impl Default for bufring_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 extern "C" {
     pub fn buffer_ring_init(ring: *mut io_uring, params: bufring_init_params_t) -> bufring_t;
 }
@@ -3167,6 +3401,15 @@ const _: () = {
     ["Offset of field: bufpool_t::freelist_head"]
         [::std::mem::offset_of!(bufpool_t, freelist_head) - 24usize];
 };
+impl Default for bufpool_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
 pub struct bufpool_freebuf_t {
@@ -3185,6 +3428,15 @@ const _: () = {
     ["Offset of field: bufpool_freebuf_t::next"]
         [::std::mem::offset_of!(bufpool_freebuf_t, next) - 16usize];
 };
+impl Default for bufpool_freebuf_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 extern "C" {
     pub fn bufpool_init(ring: *mut io_uring, buf_size: usize, entries: usize) -> bufpool_t;
 }
@@ -3209,6 +3461,15 @@ const _: () = {
     ["Offset of field: appctx_t::bufpool"][::std::mem::offset_of!(appctx_t, bufpool) - 216usize];
     ["Offset of field: appctx_t::bufrings"][::std::mem::offset_of!(appctx_t, bufrings) - 248usize];
 };
+impl Default for appctx_t {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 extern "C" {
     pub fn appctx_init(
         uring_params: io_uring_params,
@@ -3237,7 +3498,7 @@ pub union userdata__bindgen_ty_1 {
     pub val: u64,
 }
 #[repr(C)]
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Default, Copy, Clone)]
 pub struct userdata__bindgen_ty_1__bindgen_ty_1 {
     pub fd: u32,
     pub op: u8,
@@ -3261,11 +3522,29 @@ const _: () = {
     ["Offset of field: userdata__bindgen_ty_1::val"]
         [::std::mem::offset_of!(userdata__bindgen_ty_1, val) - 0usize];
 };
+impl Default for userdata__bindgen_ty_1 {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 #[allow(clippy::unnecessary_operation, clippy::identity_op)]
 const _: () = {
     ["Size of userdata"][::std::mem::size_of::<userdata>() - 8usize];
     ["Alignment of userdata"][::std::mem::align_of::<userdata>() - 8usize];
 };
+impl Default for userdata {
+    fn default() -> Self {
+        let mut s = ::std::mem::MaybeUninit::<Self>::uninit();
+        unsafe {
+            ::std::ptr::write_bytes(s.as_mut_ptr(), 0, 1);
+            s.assume_init()
+        }
+    }
+}
 pub const opcode_OP_LISTEN: opcode = 1;
 pub const opcode_OP_ACCEPT: opcode = 2;
 pub const opcode_OP_RECVMSG: opcode = 3;

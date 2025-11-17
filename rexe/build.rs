@@ -30,6 +30,9 @@ fn main() {
         .header(clib_dir.join("wrapper.h").to_str().unwrap())
         .clang_arg(format!("-I{}", clib_dir.display()))
 
+        // Derive Default for C structs
+        .derive_default(true)
+
         // Only include items from our clib headers
         .allowlist_file(format!("{}/appctx.h", clib_path))
         .allowlist_file(format!("{}/logging.h", clib_path))

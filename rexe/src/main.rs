@@ -4,31 +4,32 @@
 #![allow(non_snake_case)]
 
 mod bindings;
-use std::mem::MaybeUninit;
-
 pub use bindings::*;
 
 fn main() {
     let mut appctx = unsafe {
-        let mut uring_params: io_uring_params = MaybeUninit::zeroed().assume_init();
-        uring_params.sq_thread_idle = 5000;
-        uring_params.sq_thread_cpu = 0;
-        uring_params.flags = IORING_SETUP_SQPOLL | IORING_SETUP_SQ_AFF;
-
-        let mut bufrings_params: [bufring_init_params_t; BUFRINGS as usize] = [
-            bufring_init_params_t {
-                entries: 16,
-                entry_size: 1024,
-                bgid: 0,
+        appctx_init(
+            io_uring_params {
+                sq_thread_idle: 5000,
+                sq_thread_cpu: 0,
+                flags: IORING_SETUP_SQPOLL | IORING_SETUP_SQ_AFF,
+                ..Default::default()
             },
-            bufring_init_params_t {
-                entries: 16,
-                entry_size: 512,
-                bgid: 1,
-            },
-        ];
-
-        appctx_init(uring_params, bufrings_params.as_mut_ptr(), 16)
+            [
+                bufring_init_params_t {
+                    entries: 16,
+                    entry_size: 1024,
+                    bgid: 0,
+                },
+                bufring_init_params_t {
+                    entries: 16,
+                    entry_size: 512,
+                    bgid: 1,
+                },
+            ]
+            .as_mut_ptr(),
+            16,
+        )
     };
 
     unsafe {
