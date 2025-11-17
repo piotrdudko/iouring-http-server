@@ -3,6 +3,8 @@
 
 #include <liburing.h>
 #include <stdlib.h>
+#include <sys/socket.h>
+
 
 struct bufring_t bufring_init(struct io_uring *ring,
                               struct bufring_init_params_t params) {
@@ -93,14 +95,14 @@ void bufpool_put(struct bufpool_t *self, int bid) {
 struct appctx_t
 appctx_init(struct io_uring_params uring_params,
             struct bufring_init_params_t bufring_params[BUFRINGS],
-            size_t regbuf_pool_size) {
+            size_t bufpool_size) {
   struct io_uring uring;
   ASSERT_POSITIVE(io_uring_queue_init_params(16, &uring, &uring_params));
 
   struct bufpool_t bufpool =
-      bufpool_init(&uring, LOGGING_BUFSIZE, regbuf_pool_size);
+      bufpool_init(&uring, LOGGING_BUFSIZE, bufpool_size);
 
-  struct bufring_t bufrings[BUFRINGS];
+  struct bufring_t *bufrings = malloc(BUFRINGS * sizeof(struct bufring_t));
   for (int i = 0; i < BUFRINGS; i++) {
     bufrings[i] = bufring_init(&uring, bufring_params[i]);
   }
@@ -110,4 +112,51 @@ appctx_init(struct io_uring_params uring_params,
       .bufpool = bufpool,
       .bufrings = bufrings,
   };
+}
+
+void appctx_handle_accept(struct appctx_t *self, struct io_uring_cqe *cqe,
+                          struct msghdr *msg) {
+  int clientfd = cqe->res;
+  ASSERT_POSITIVE(clientfd);
+
+  struct io_uring_sqe *sqe = io_uring_get_sqe(&self->uring);
+  io_uring_prep_recvmsg_multishot(sqe, clientfd, msg, 0);
+  sqe->flags |= IOSQE_BUFFER_SELECT;
+  sqe->buf_group = BUFRINGS_CONN;
+  encode_userdata(sqe, clientfd, OP_RECVMSG);
+
+  format_inet_addr_from_sockfd(clientfd, fmt_addr, FMT_ADDRLEN);
+  debug_log(self, "New connection from %s", fmt_addr);
+}
+
+char MESSAGE[] = "Hello, World!\n";
+
+void appctx_handle_recvmsg(struct appctx_t *self, struct io_uring_cqe *cqe) {
+  struct msghdr msg = {};
+  struct userdata ud = userdata_decode(cqe);
+  int bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
+  int msglen = cqe->res;
+  ASSERT_POSITIVE(msglen);
+
+  struct io_uring_recvmsg_out *out = io_uring_recvmsg_validate(
+      self->bufrings[BUFRINGS_CONN].bufs[bid].iov_base, msglen, &msg);
+  ASSERT_NOT_NULL(out, "recvmsg validation failed.");
+
+  char *buf = io_uring_recvmsg_payload(out, &msg);
+  int len = io_uring_recvmsg_payload_length(out, msglen, &msg);
+
+  debug_log(self, "Packet from %s, bid: %d, len: %d, content: %.*s", fmt_addr,
+            bid, msglen, len, buf);
+
+  io_uring_buf_ring_add(
+      self->bufrings[BUFRINGS_CONN].br,
+      self->bufrings[BUFRINGS_CONN].bufs[bid].iov_base,
+      self->bufrings[BUFRINGS_CONN].bufs[bid].iov_len, bid,
+      io_uring_buf_ring_mask(self->bufrings[BUFRINGS_CONN].params.entries),
+      bid);
+  io_uring_buf_ring_advance(self->bufrings[BUFRINGS_CONN].br, 1);
+
+  struct io_uring_sqe *sqe = io_uring_get_sqe(&self->uring);
+  io_uring_prep_send_zc(sqe, ud.fd, MESSAGE, strlen(MESSAGE), 0, 0);
+  encode_userdata(sqe, ud.fd, OP_SENDMSG);
 }

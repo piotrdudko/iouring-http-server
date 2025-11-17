@@ -55,3 +55,6 @@ appctx_init(struct io_uring_params uring_params,
             size_t regbuf_pool_size);
 // TODO
 void appctx_deinit(struct appctx_t *state);
+
+void appctx_handle_accept(struct appctx_t *state, struct io_uring_cqe *cqe, struct msghdr *msg);
+void appctx_handle_recvmsg(struct appctx_t *self, struct io_uring_cqe *cqe);

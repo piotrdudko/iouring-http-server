@@ -8,6 +8,7 @@ OBJ_DIR = obj
 TARGET = libiouring_helpers.a
 
 SOURCES = appctx.c logging.c userdata.c
+HEADERS = appctx.h logging.h userdata.h
 OBJECTS = $(SOURCES:%.c=$(OBJ_DIR)/%.o)
 
 .PHONY: all clean
@@ -17,7 +18,7 @@ all: $(TARGET)
 $(TARGET): $(OBJECTS)
 	$(AR) rcs $@ $^
 
-$(OBJ_DIR)/%.o: $(LIB_DIR)/%.c | $(OBJ_DIR)
+$(OBJ_DIR)/%.o: $(LIB_DIR)/%.c $(HEADERS) | $(OBJ_DIR)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR):

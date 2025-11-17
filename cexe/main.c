@@ -10,13 +10,10 @@
 
 #define MAX_CONNECTIONS 5
 
-char MESSAGE[] = "Hello, World!\n";
-
 void run_event_loop(struct appctx_t *appctx) {
   int res;
-  struct io_uring_cqe *cqe;
-  struct io_uring_sqe *sqe;
   struct msghdr msg = {};
+  struct io_uring_cqe *cqe;
 
   for (;;) {
     res = io_uring_wait_cqe(&appctx->uring, &cqe);
@@ -33,50 +30,14 @@ void run_event_loop(struct appctx_t *appctx) {
     case OP_WRITE_FIXED: {
       uint16_t bid = ud.fd;
       bufpool_put(&appctx->bufpool, bid);
-
       break;
     }
     case OP_ACCEPT: {
-      int clientfd = cqe->res;
-      ASSERT_POSITIVE(clientfd);
-
-      sqe = io_uring_get_sqe(&appctx->uring);
-      io_uring_prep_recvmsg_multishot(sqe, clientfd, &msg, 0);
-      sqe->flags |= IOSQE_BUFFER_SELECT;
-      sqe->buf_group = 0;
-      encode_userdata(sqe, clientfd, OP_RECVMSG);
-
-      format_inet_addr_from_sockfd(clientfd, fmt_addr, FMT_ADDRLEN);
+      appctx_handle_accept(appctx, cqe, &msg);
       break;
     }
     case OP_RECVMSG: {
-      int bid = cqe->flags >> IORING_CQE_BUFFER_SHIFT;
-      int msglen = cqe->res;
-      ASSERT_POSITIVE(msglen);
-
-      struct io_uring_recvmsg_out *out = io_uring_recvmsg_validate(
-          appctx->bufrings[BUFRINGS_CONN].bufs[bid].iov_base, msglen, &msg);
-      ASSERT_NOT_NULL(out, "recvmsg validation failed.");
-
-      char *buf = io_uring_recvmsg_payload(out, &msg);
-      int len = io_uring_recvmsg_payload_length(out, msglen, &msg);
-
-      debug_log(appctx, "Packet from %s, bid: %d, len: %d, content: %.*s",
-                fmt_addr, bid, msglen, len, buf);
-
-      io_uring_buf_ring_add(appctx->bufrings[BUFRINGS_CONN].br,
-                            appctx->bufrings[BUFRINGS_CONN].bufs[bid].iov_base,
-                            appctx->bufrings[BUFRINGS_CONN].bufs[bid].iov_len,
-                            bid,
-                            io_uring_buf_ring_mask(
-                                appctx->bufrings[BUFRINGS_CONN].params.entries),
-                            bid);
-      io_uring_buf_ring_advance(appctx->bufrings[BUFRINGS_CONN].br, 1);
-
-      sqe = io_uring_get_sqe(&appctx->uring);
-      io_uring_prep_send_zc(sqe, ud.fd, MESSAGE, strlen(MESSAGE), 0, 0);
-      encode_userdata(sqe, ud.fd, OP_SENDMSG);
-
+      appctx_handle_recvmsg(appctx, cqe);
       break;
     }
     default: {
