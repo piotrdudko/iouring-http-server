@@ -25,9 +25,28 @@ fn main() {
     println!("cargo:rustc-link-lib=uring-ffi");
 
     // Generate bindings using bindgen
+    let clib_path = clib_dir.to_str().unwrap();
     let bindings = bindgen::Builder::default()
         .header(clib_dir.join("wrapper.h").to_str().unwrap())
         .clang_arg(format!("-I{}", clib_dir.display()))
+
+        // Only include items from our clib headers
+        .allowlist_file(format!("{}/appctx.h", clib_path))
+        .allowlist_file(format!("{}/logging.h", clib_path))
+        .allowlist_file(format!("{}/userdata.h", clib_path))
+        .allowlist_file(format!("{}/errors.h", clib_path))
+
+        // Include io_uring functions (regex pattern)
+        .allowlist_function("io_uring_.*")
+
+        // Include io_uring types and structs
+        .allowlist_type("io_uring.*")
+        .allowlist_type("iovec")  // needed for buffers
+
+        // Include io_uring constants
+        .allowlist_var("IORING_.*")
+        .allowlist_var("IOSQE_.*")
+
         .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
         .generate()
         .expect("Unable to generate bindings");
